@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Jogo da Velha • Ultimate Tic-Tac-Toe</title>
+    <meta name="description" content="Jogue Super Jogo da Velha (Ultimate Tic-Tac-Toe) online grátis! 9 tabuleiros interconectados. Desafie seus amigos ou jogue sozinho. 100% no navegador.">
+    <meta property="og:title" content="Super Jogo da Velha • Ultimate Tic-Tac-Toe">
+    <meta property="og:description" content="O Jogo da Velha clássico elevado ao próximo nível. Estratégia em 9 tabuleiros! Jogue agora grátis.">
+    <meta property="og:type" content="website">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+        
+        :root {
+            --primary: #3b82f6;
+        }
+        
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        .title-font {
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .game-container {
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4);
+        }
+
+        .small-board {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .small-board.forced {
+            box-shadow: 0 0 0 5px #facc15, 0 0 0 12px rgba(250, 204, 21, 0.15);
+            transform: scale(1.03);
+            animation: forcedPulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes forcedPulse {
+            0%, 100% { 
+                box-shadow: 0 0 0 5px #facc15, 0 0 0 12px rgba(250, 204, 21, 0.15);
+            }
+            50% { 
+                box-shadow: 0 0 0 5px #facc15, 0 0 0 18px rgba(250, 204, 21, 0.08);
+            }
+        }
+
+        .cell {
+            transition: all 0.1s ease;
+            font-family: 'Space Grotesk', system_ui, sans-serif;
+        }
+        
+        .cell:hover:not(.occupied) {
+            background-color: #3f3f46;
+            transform: scale(1.05);
+        }
+        
+        .cell.occupied {
+            cursor: default !important;
+        }
+
+        .winner-overlay {
+            animation: popIn 0.3s ease forwards;
+            font-family: 'Space Grotesk', system_ui, sans-serif;
+            text-shadow: 0 10px 10px rgb(0 0 0 / 0.3);
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.6);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .meta-line {
+            box-shadow: 0 0 0 3px #27251f;
+        }
+
+        .cell-x { color: #60a5fa; text-shadow: 0 0 10px #3b82f640; }
+        .cell-o { color: #f87171; text-shadow: 0 0 10px #ef444440; }
+
+        .big-board {
+            background: linear-gradient(145deg, #18181b, #27251f);
+        }
+
+        .github-badge {
+            font-size: 10px;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-white">
+    <div class="max-w-[820px] mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="flex flex-col items-center mb-8">
+            <div class="flex items-center gap-x-3 mb-2">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-violet-500 rounded-2xl flex items-center justify-center">
+                    <i class="fa-solid fa-chess-board text-white text-3xl"></i>
+                </div>
+                <h1 class="title-font text-6xl font-bold tracking-tighter">Super Jogo da Velha</h1>
+            </div>
+            <p class="text-zinc-400 text-lg">Ultimate Tic-Tac-Toe • 9 tabuleiros em 1</p>
+            
+            <!-- GitHub ready badge -->
+            <div class="mt-3 flex items-center gap-x-2">
+                <div class="github-badge px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-2xl text-zinc-500 flex items-center gap-x-1.5 text-[10px] font-medium">
+                    <i class="fa-brands fa-github"></i>
+                    <span>PRONTO PARA GITHUB PAGES</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Bar -->
+        <div class="flex items-center justify-between mb-6 px-1">
+            <!-- Turn Indicator -->
+            <div class="flex items-center gap-x-3 bg-zinc-900 px-5 py-3 rounded-3xl border border-zinc-800">
+                <div class="text-sm text-zinc-400">VEZ DO JOGADOR</div>
+                <div id="turn-indicator" 
+                     class="flex items-center gap-x-2 text-3xl font-bold px-4 py-1 rounded-2xl bg-zinc-800">
+                    <span id="player-symbol" class="font-black">X</span>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex items-center gap-x-2">
+                <button onclick="showRulesModal()"
+                        class="flex items-center gap-x-2 px-5 py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-sm font-medium rounded-3xl transition-colors">
+                    <i class="fa-solid fa-info-circle"></i>
+                    <span>Regras</span>
+                </button>
+                <button onclick="restartGame()"
+                        class="flex items-center gap-x-2 px-6 py-3 bg-white text-zinc-950 hover:bg-zinc-200 font-semibold rounded-3xl transition-all active:scale-[0.985]">
+                    <i class="fa-solid fa-redo mr-2"></i>
+                    <span>Reiniciar</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Game Board -->
+        <div id="game-board" 
+             class="big-board grid grid-cols-3 gap-3 p-4 rounded-[3rem] border border-zinc-800 shadow-2xl max-w-[780px] mx-auto">
+            <!-- Small boards are created dynamically by JavaScript -->
+        </div>
+
+        <!-- Status -->
+        <div id="status" 
+             class="mt-5 text-center text-sm font-medium text-zinc-400 h-6 transition-all">
+        </div>
+
+        <!-- Footer tip -->
+        <div class="text-center mt-8">
+            <p class="text-xs text-zinc-500">O primeiro jogador pode jogar em qualquer lugar. Depois, o próximo é obrigado a jogar no tabuleiro correspondente à casa marcada.</p>
+        </div>
+    </div>
+
+    <!-- Win / Draw Modal -->
+    <div id="modal" onclick="if (event.target.id === 'modal') closeModal()" 
+         class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100]">
+        <div onclick="event.stopImmediatePropagation()" 
+             class="bg-zinc-900 border border-zinc-700 rounded-3xl p-10 w-full max-w-[360px] mx-4 text-center shadow-2xl">
+            
+            <div id="modal-content" class="mb-8">
+                <!-- Content injected by JS -->
+            </div>
+            
+            <div class="flex flex-col gap-y-3">
+                <button onclick="restartFromModal()"
+                        class="w-full py-4 bg-white hover:bg-zinc-100 active:bg-zinc-200 transition-all text-zinc-950 font-bold text-lg rounded-2xl flex items-center justify-center gap-x-2">
+                    <i class="fa-solid fa-play mr-2"></i>
+                    <span>JOGAR NOVAMENTE</span>
+                </button>
+                
+                <button onclick="closeModal()"
+                        class="w-full py-3 text-sm text-zinc-400 hover:text-white transition-colors">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tailwind script
+        function initializeTailwind() {
+            document.documentElement.style.setProperty('--accent', '#3b82f6');
+        }
+
+        // Game State
+        let gameState = {
+            boards: [],           // 9 small boards, each with 9 cells
+            winners: [],          // winner of each small board: null, 'X', 'O', 'draw'
+            currentPlayer: 'X',
+            forcedBoard: null,    // which small board the next player MUST play in (or null = free choice)
+            gameOver: false,
+            winner: null
+        };
+
+        // Create the visual board
+        function createBoard() {
+            const container = document.getElementById('game-board');
+            container.innerHTML = '';
+            container.className = `big-board grid grid-cols-3 gap-3 p-4 rounded-[3rem] border border-zinc-800 shadow-2xl max-w-[780px] mx-auto`;
+
+            for (let boardIdx = 0; boardIdx < 9; boardIdx++) {
+                // Small board container
+                const smallBoard = document.createElement('div');
+                smallBoard.className = `small-board bg-zinc-800 rounded-3xl p-3 shadow-inner relative border border-zinc-700`;
+                smallBoard.dataset.board = boardIdx;
+
+                // Inner 3x3 grid for cells
+                const grid = document.createElement('div');
+                grid.className = `grid grid-cols-3 gap-[5px]`;
+
+                for (let cellIdx = 0; cellIdx < 9; cellIdx++) {
+                    const cell = document.createElement('div');
+                    cell.className = `cell aspect-square bg-zinc-700 hover:bg-zinc-600 active:bg-zinc-500 rounded-2xl flex items-center justify-center text-6xl font-black cursor-pointer select-none border border-zinc-600`;
+                    cell.dataset.board = boardIdx;
+                    cell.dataset.cell = cellIdx;
+                    
+                    // Click handler
+                    cell.onclick = () => makeMove(boardIdx, cellIdx);
+                    
+                    grid.appendChild(cell);
+                }
+
+                smallBoard.appendChild(grid);
+
+                // Winner overlay (hidden by default)
+                const overlay = document.createElement('div');
+                overlay.className = `winner-overlay absolute inset-0 hidden items-center justify-center text-[105px] font-black pointer-events-none rounded-3xl`;
+                overlay.dataset.overlayFor = boardIdx;
+                smallBoard.appendChild(overlay);
+
+                container.appendChild(smallBoard);
+            }
+        }
+
+        // Check if a small board has a winner
+        function checkSmallWinner(boardIdx) {
+            const b = gameState.boards[boardIdx];
+            const lines = [
+                [0,1,2], [3,4,5], [6,7,8],           // rows
+                [0,3,6], [1,4,7], [2,5,8],           // columns
+                [0,4,8], [2,4,6]                     // diagonals
+            ];
+
+            for (const [a, b1, c] of lines) {
+                if (b[a] && b[a] === b[b1] && b[a] === b[c]) {
+                    return b[a];
+                }
+            }
+            return null;
+        }
+
+        // Check if small board is full
+        function isBoardFull(boardIdx) {
+            return gameState.boards[boardIdx].every(cell => cell !== null);
+        }
+
+        // Check if the BIG board has a winner
+        function checkBigWinner() {
+            const w = gameState.winners;
+            const lines = [
+                [0,1,2], [3,4,5], [6,7,8],
+                [0,3,6], [1,4,7], [2,5,8],
+                [0,4,8], [2,4,6]
+            ];
+
+            for (const [a, b, c] of lines) {
+                if (w[a] && w[a] !== 'draw' && w[a] === w[b] && w[a] === w[c]) {
+                    return w[a];
+                }
+            }
+            return null;
+        }
+
+        // Update entire UI
+        function updateUI() {
+            // Update turn indicator
+            const turnContainer = document.getElementById('turn-indicator');
+            const symbolEl = document.getElementById('player-symbol');
+            
+            if (gameState.gameOver) {
+                turnContainer.innerHTML = `<span class="text-zinc-400 text-xl px-3">FIM DE JOGO</span>`;
+            } else {
+                symbolEl.textContent = gameState.currentPlayer;
+                symbolEl.className = gameState.currentPlayer === 'X' 
+                    ? 'font-black text-blue-400' 
+                    : 'font-black text-red-400';
+                turnContainer.style.background = gameState.currentPlayer === 'X' 
+                    ? 'rgba(59, 130, 246, 0.1)' 
+                    : 'rgba(248, 113, 113, 0.1)';
+            }
+
+            // Clear forced highlights
+            document.querySelectorAll('.small-board').forEach(el => {
+                el.classList.remove('forced', 'ring-4', 'ring-yellow-400', 'ring-offset-4', 'ring-offset-zinc-900');
+            });
+
+            // Highlight forced board
+            if (gameState.forcedBoard !== null && !gameState.gameOver) {
+                const forcedEl = document.querySelector(`.small-board[data-board="${gameState.forcedBoard}"]`);
+                if (forcedEl) {
+                    forcedEl.classList.add('forced');
+                }
+            }
+
+            // Update status text
+            const statusEl = document.getElementById('status');
+            if (gameState.gameOver) {
+                if (gameState.winner === 'draw') {
+                    statusEl.innerHTML = `<span class="text-amber-400">O jogo terminou em empate!</span>`;
+                } else {
+                    statusEl.innerHTML = `<span class="${gameState.winner === 'X' ? 'text-blue-400' : 'text-red-400'}">Jogador ${gameState.winner} venceu!</span>`;
+                }
+            } else if (gameState.forcedBoard !== null) {
+                statusEl.innerHTML = `Jogue no tabuleiro <span class="font-bold text-yellow-400">#${gameState.forcedBoard + 1}</span> (destacado em amarelo)`;
+            } else {
+                statusEl.innerHTML = `Você pode jogar em <span class="font-medium text-white">qualquer tabuleiro</span> disponível`;
+            }
+
+            // Update all cells
+            document.querySelectorAll('.cell').forEach(cellEl => {
+                const b = parseInt(cellEl.dataset.board);
+                const c = parseInt(cellEl.dataset.cell);
+                const value = gameState.boards[b][c];
+                const boardWon = gameState.winners[b] !== null;
+
+                if (value) {
+                    cellEl.innerHTML = `<span class="${value === 'X' ? 'cell-x' : 'cell-o'}">${value}</span>`;
+                    cellEl.classList.add('occupied', 'cursor-default');
+                    cellEl.style.backgroundColor = value === 'X' ? '#1e3a8a20' : '#450a0a30';
+                } else {
+                    cellEl.innerHTML = '';
+                    cellEl.classList.remove('occupied');
+                    cellEl.style.backgroundColor = '';
+                    
+                    if (boardWon) {
+                        cellEl.style.opacity = '0.35';
+                        cellEl.style.cursor = 'default';
+                    } else {
+                        cellEl.style.opacity = '1';
+                        cellEl.style.cursor = 'pointer';
+                    }
+                }
+
+                // Disable clicks on finished boards
+                if (boardWon) {
+                    cellEl.onclick = null;
+                } else {
+                    cellEl.onclick = () => makeMove(b, c);
+                }
+            });
+
+            // Update winner overlays
+            document.querySelectorAll('.winner-overlay').forEach(overlay => {
+                const b = parseInt(overlay.dataset.overlayFor);
+                const win = gameState.winners[b];
+
+                if (win === 'X' || win === 'O') {
+                    overlay.innerHTML = win;
+                    overlay.className = `winner-overlay absolute inset-0 flex items-center justify-center text-[105px] font-black pointer-events-none rounded-3xl bg-zinc-900/75 ${win === 'X' ? 'text-blue-400' : 'text-red-400'}`;
+                    overlay.style.display = 'flex';
+                } else if (win === 'draw') {
+                    overlay.innerHTML = '–';
+                    overlay.className = `winner-overlay absolute inset-0 flex items-center justify-center text-[70px] font-black pointer-events-none rounded-3xl bg-zinc-800/60 text-zinc-400`;
+                    overlay.style.display = 'flex';
+                } else {
+                    overlay.style.display = 'none';
+                    overlay.innerHTML = '';
+                }
+            });
+        }
+
+        // Make a move
+        function makeMove(boardIdx, cellIdx) {
+            if (gameState.gameOver) return;
+
+            const board = gameState.boards[boardIdx];
+            
+            // Cell already occupied?
+            if (board[cellIdx] !== null) return;
+            
+            // Board already finished?
+            if (gameState.winners[boardIdx] !== null) return;
+
+            // Check forced board rule
+            if (gameState.forcedBoard !== null && boardIdx !== gameState.forcedBoard) {
+                const forcedBoardFinished = gameState.winners[gameState.forcedBoard] !== null || 
+                                           isBoardFull(gameState.forcedBoard);
+                
+                if (!forcedBoardFinished) {
+                    // Invalid move - flash the forced board
+                    flashInvalidMove();
+                    return;
+                }
+            }
+
+            // === VALID MOVE ===
+            board[cellIdx] = gameState.currentPlayer;
+
+            // Update cell visually immediately
+            const cellEl = document.querySelector(`.cell[data-board="${boardIdx}"][data-cell="${cellIdx}"]`);
+            if (cellEl) {
+                cellEl.innerHTML = `<span class="${gameState.currentPlayer === 'X' ? 'cell-x' : 'cell-o'}">${gameState.currentPlayer}</span>`;
+                cellEl.classList.add('occupied', 'cursor-default');
+                cellEl.style.backgroundColor = gameState.currentPlayer === 'X' ? '#1e3a8a20' : '#450a0a30';
+                
+                // Pop animation
+                cellEl.style.transform = 'scale(0.6)';
+                setTimeout(() => {
+                    cellEl.style.transition = 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    cellEl.style.transform = 'scale(1)';
+                    setTimeout(() => {
+                        cellEl.style.transition = 'all 0.1s ease';
+                    }, 200);
+                }, 10);
+            }
+
+            // Check if this small board now has a winner
+            let smallWinner = checkSmallWinner(boardIdx);
+            let boardJustFinished = false;
+
+            if (smallWinner) {
+                gameState.winners[boardIdx] = smallWinner;
+                boardJustFinished = true;
+
+                // Check if this also wins the BIG game
+                if (checkBigWinner()) {
+                    gameState.gameOver = true;
+                    gameState.winner = smallWinner;
+                    updateUI();
+                    setTimeout(() => {
+                        showWinModal(smallWinner);
+                    }, 350);
+                    return;
+                }
+            } 
+            else if (isBoardFull(boardIdx)) {
+                gameState.winners[boardIdx] = 'draw';
+                boardJustFinished = true;
+            }
+
+            // Set the forced board for the next player
+            gameState.forcedBoard = cellIdx;
+
+            // If the target board is already finished, give free choice
+            if (gameState.winners[gameState.forcedBoard] !== null || 
+                isBoardFull(gameState.forcedBoard)) {
+                gameState.forcedBoard = null;
+            }
+
+            // Switch player
+            gameState.currentPlayer = gameState.currentPlayer === 'X' ? 'O' : 'X';
+
+            // Check for overall draw (all small boards finished and no big winner)
+            if (!gameState.gameOver) {
+                const allBoardsFinished = gameState.winners.every(w => w !== null);
+                if (allBoardsFinished) {
+                    gameState.gameOver = true;
+                    gameState.winner = 'draw';
+                    updateUI();
+                    setTimeout(() => {
+                        showDrawModal();
+                    }, 350);
+                    return;
+                }
+            }
+
+            updateUI();
+        }
+
+        function flashInvalidMove() {
+            if (gameState.forcedBoard === null) return;
+            
+            const forcedEl = document.querySelector(`.small-board[data-board="${gameState.forcedBoard}"]`);
+            if (!forcedEl) return;
+
+            forcedEl.classList.remove('forced');
+            forcedEl.style.boxShadow = '0 0 0 5px #ef4444, 0 0 0 14px rgba(239, 68, 68, 0.2)';
+
+            setTimeout(() => {
+                forcedEl.style.boxShadow = '';
+                if (gameState.forcedBoard !== null && !gameState.gameOver) {
+                    forcedEl.classList.add('forced');
+                }
+            }, 650);
+        }
+
+        // Show win modal
+        function showWinModal(winner) {
+            const modal = document.getElementById('modal');
+            const content = document.getElementById('modal-content');
+
+            content.innerHTML = `
+                <div class="mb-6">
+                    <div class="mx-auto w-24 h-24 flex items-center justify-center mb-5">
+                        <div class="text-[90px] font-black ${winner === 'X' ? 'text-blue-400' : 'text-red-400'} drop-shadow-lg">
+                            ${winner}
+                        </div>
+                    </div>
+                    <div class="text-5xl font-bold tracking-tighter mb-1">VENCEU!</div>
+                    <p class="text-xl text-zinc-400">Jogador <span class="font-bold ${winner === 'X' ? 'text-blue-400' : 'text-red-400'}">${winner}</span> é o campeão</p>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function showDrawModal() {
+            const modal = document.getElementById('modal');
+            const content = document.getElementById('modal-content');
+
+            content.innerHTML = `
+                <div class="mb-6">
+                    <div class="mx-auto w-24 h-24 flex items-center justify-center mb-5">
+                        <i class="fa-solid fa-handshake text-7xl text-amber-400"></i>
+                    </div>
+                    <div class="text-5xl font-bold tracking-tighter mb-2">EMPATE!</div>
+                    <p class="text-xl text-zinc-400">Nenhum jogador conseguiu a vitória</p>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        function restartFromModal() {
+            closeModal();
+            restartGame();
+        }
+
+        // Initialize / Restart game
+        function initGame() {
+            gameState = {
+                boards: Array.from({ length: 9 }, () => Array(9).fill(null)),
+                winners: Array(9).fill(null),
+                currentPlayer: 'X',
+                forcedBoard: null,
+                gameOver: false,
+                winner: null
+            };
+
+            createBoard();
+            updateUI();
+        }
+
+        function restartGame() {
+            initGame();
+        }
+
+        // Rules Modal
+        function showRulesModal() {
+            const modal = document.getElementById('modal');
+            const content = document.getElementById('modal-content');
+
+            content.innerHTML = `
+                <div class="text-left">
+                    <div class="flex items-center gap-x-3 mb-6">
+                        <i class="fa-solid fa-book text-3xl text-blue-400"></i>
+                        <div>
+                            <div class="font-bold text-3xl tracking-tight">Como Jogar</div>
+                            <div class="text-sm text-zinc-400">Super Jogo da Velha (Ultimate)</div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-5 text-[15px]">
+                        <div class="flex gap-4">
+                            <div class="w-7 h-7 flex-shrink-0 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-bold mt-0.5">1</div>
+                            <div>
+                                <div class="font-semibold">Primeira jogada</div>
+                                <div class="text-zinc-400">O jogador X pode marcar em <span class="font-medium text-white">qualquer casa</span> de qualquer um dos 9 tabuleiros.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-4">
+                            <div class="w-7 h-7 flex-shrink-0 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-bold mt-0.5">2</div>
+                            <div>
+                                <div class="font-semibold">Jogada obrigatória</div>
+                                <div class="text-zinc-400">Depois de jogar em uma casa, o próximo jogador <span class="font-medium text-white">deve jogar no tabuleiro pequeno</span> que corresponde à posição da casa que você marcou.</div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="w-7 h-7 flex-shrink-0 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-bold mt-0.5">3</div>
+                            <div>
+                                <div class="font-semibold">Exemplo prático</div>
+                                <div class="text-zinc-400">Se você jogar no <span class="font-medium">canto superior direito</span> de um tabuleiro, o oponente é obrigado a jogar no tabuleiro pequeno do canto superior direito do grande tabuleiro.</div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="w-7 h-7 flex-shrink-0 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-bold mt-0.5">4</div>
+                            <div>
+                                <div class="font-semibold">Tabuleiro bloqueado</div>
+                                <div class="text-zinc-400">Se o tabuleiro para onde o jogador foi enviado já estiver vencido ou empatado, ele pode escolher <span class="font-medium text-white">qualquer tabuleiro</span> disponível.</div>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-zinc-700 text-sm">
+                            <div class="font-semibold mb-1">Vitória</div>
+                            <div class="text-zinc-400">Vence quem conseguir <span class="font-medium text-white">3 tabuleiros pequenos em linha</span> (horizontal, vertical ou diagonal) no grande tabuleiro.</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // Keyboard support (R to restart)
+        function setupKeyboard() {
+            document.addEventListener('keydown', function(e) {
+                if (e.key.toLowerCase() === 'r' && !document.getElementById('modal').classList.contains('flex')) {
+                    restartGame();
+                }
+                if (e.key === 'Escape') {
+                    const modal = document.getElementById('modal');
+                    if (!modal.classList.contains('hidden')) {
+                        modal.classList.remove('flex');
+                        modal.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        // Initialize everything
+        function startGame() {
+            initializeTailwind();
+            initGame();
+            setupKeyboard();
+            
+            // Easter egg: click title to restart
+            const title = document.querySelector('h1');
+            if (title) {
+                title.style.cursor = 'pointer';
+                title.onclick = () => restartGame();
+            }
+            
+            // Show initial status clearly
+            setTimeout(() => {
+                const status = document.getElementById('status');
+                if (status && !gameState.gameOver) {
+                    status.innerHTML = `Você pode jogar em <span class="font-medium text-white">qualquer tabuleiro</span> disponível`;
+                }
+            }, 1200);
+        }
+
+        // Boot the game
+        window.onload = startGame;
+    </script>
+</body>
+</html>
