@@ -1,0 +1,348 @@
+/* ============================================
+   SUPER JOGO DA VELHA - CSS Customizado
+   Produção Ready - Sem Tailwind CDN
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Space+Grotesk:wght@500;600&display=swap');
+
+:root {
+    --primary: #3b82f6;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', system_ui, -apple-system, sans-serif;
+    background-color: #09090b;
+    color: #fff;
+    margin: 0;
+    padding: 24px 16px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Container Principal */
+.container {
+    width: 100%;
+    max-width: 860px;
+    margin: 0 auto;
+}
+
+/* Header */
+.header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.logo {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    font-size: 28px;
+    color: white;
+}
+
+h1 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    margin: 0 0 8px 0;
+}
+
+.header p {
+    color: #a1a1aa;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Info Bar */
+.info-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding: 0 4px;
+}
+
+.turn-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: #18181b;
+    padding: 12px 20px;
+    border-radius: 9999px;
+    border: 1px solid #27251f;
+}
+
+.turn-label {
+    font-size: 0.875rem;
+    color: #a1a1aa;
+}
+
+.player-symbol {
+    font-size: 1.875rem;
+    font-weight: 900;
+    padding: 4px 16px;
+    border-radius: 12px;
+    background-color: #27251f;
+}
+
+.buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.1s ease;
+}
+
+.btn-primary {
+    background-color: #fff;
+    color: #09090b;
+}
+
+.btn-primary:hover {
+    background-color: #f4f4f5;
+}
+
+.btn-secondary {
+    background-color: #18181b;
+    color: #fff;
+    border: 1px solid #3f3f46;
+}
+
+.btn-secondary:hover {
+    background-color: #27251f;
+}
+
+.btn-text {
+    background: transparent;
+    color: #a1a1aa;
+    padding: 8px 16px;
+}
+
+.btn-text:hover {
+    color: #fff;
+}
+
+.btn-large {
+    padding: 16px 32px;
+    font-size: 1.1rem;
+    width: 100%;
+    justify-content: center;
+}
+
+/* Game Board */
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    background: linear-gradient(145deg, #18181b, #27251f);
+    padding: 16px;
+    border-radius: 24px;
+    border: 1px solid #27251f;
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4);
+    max-width: 780px;
+    margin: 0 auto;
+}
+
+/* Small Boards */
+.small-board {
+    background-color: #27251f;
+    border: 1px solid #3f3f46;
+    border-radius: 20px;
+    padding: 12px;
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.small-board.forced {
+    box-shadow: 0 0 0 5px #facc15, 
+                0 0 0 14px rgba(250, 204, 21, 0.12);
+    transform: scale(1.03);
+    animation: forcedPulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes forcedPulse {
+    0%, 100% { 
+        box-shadow: 0 0 0 5px #facc15, 0 0 0 14px rgba(250, 204, 21, 0.12);
+    }
+    50% { 
+        box-shadow: 0 0 0 5px #facc15, 0 0 0 20px rgba(250, 204, 21, 0.06);
+    }
+}
+
+/* Cells */
+.cell {
+    background-color: #3f3f46;
+    border: 1px solid #52525b;
+    border-radius: 12px;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.75rem;
+    font-weight: 900;
+    font-family: 'Space Grotesk', system_ui, sans-serif;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    user-select: none;
+    color: #fff;
+}
+
+.cell:hover:not(.occupied) {
+    background-color: #52525b;
+    transform: scale(1.06);
+}
+
+.cell.occupied {
+    cursor: default !important;
+}
+
+/* Click Pop Effect */
+.cell-pop {
+    animation: cellPop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes cellPop {
+    0%   { transform: scale(0.6); }
+    40%  { transform: scale(1.2); }
+    70%  { transform: scale(0.95); }
+    100% { transform: scale(1); }
+}
+
+/* Winner Overlay */
+.winner-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 6.5rem;
+    font-weight: 900;
+    font-family: 'Space Grotesk', system_ui, sans-serif;
+    pointer-events: none;
+    border-radius: 20px;
+    background-color: rgba(24, 24, 27, 0.78);
+    animation: popIn 0.3s ease forwards;
+    text-shadow: 0 10px 20px rgb(0 0 0 / 0.4);
+}
+
+@keyframes popIn {
+    from { opacity: 0; transform: scale(0.5); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+/* Small Board Win Effects */
+.small-board.won-x {
+    box-shadow: 0 0 0 3px #60a5fa, 0 10px 30px -10px rgb(96 165 250 / 0.5);
+}
+
+.small-board.won-o {
+    box-shadow: 0 0 0 3px #f87171, 0 10px 30px -10px rgb(248 113 113 / 0.5);
+}
+
+.small-board.small-win {
+    animation: smallWinPulse 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes smallWinPulse {
+    0%   { transform: scale(0.9); box-shadow: 0 0 0 10px #facc15; }
+    45%  { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
+/* Text Colors */
+.cell-x { color: #60a5fa; text-shadow: 0 0 12px rgba(59, 130, 246, 0.5); }
+.cell-o { color: #f87171; text-shadow: 0 0 12px rgba(239, 68, 68, 0.5); }
+
+/* Status */
+.status {
+    text-align: center;
+    margin-top: 20px;
+    min-height: 28px;
+    font-size: 0.95rem;
+    color: #a1a1aa;
+}
+
+/* Tip */
+.tip {
+    text-align: center;
+    margin-top: 32px;
+    font-size: 0.75rem;
+    color: #71717a;
+    max-width: 460px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background-color: #18181b;
+    border: 1px solid #3f3f46;
+    border-radius: 24px;
+    padding: 40px;
+    width: 100%;
+    max-width: 360px;
+    margin: 20px;
+    text-align: center;
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+}
+
+.modal-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    h1 {
+        font-size: 2.75rem;
+    }
+    
+    .game-board {
+        padding: 12px;
+        gap: 8px;
+    }
+    
+    .cell {
+        font-size: 2.2rem;
+    }
+}
